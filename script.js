@@ -1,146 +1,105 @@
-let files=[]
-let folder=""
+let files = []
+let folder = ""
 
-const list=document.getElementById("list")
-const path=document.getElementById("path")
-const preview=document.getElementById("preview")
-const search=document.getElementById("search")
-const sort=document.getElementById("sort")
+const list = document.getElementById("list")
+const pathEl = document.getElementById("path")
+const search = document.getElementById("search")
+const sort = document.getElementById("sort")
 
 fetch("files.json")
-.then(r=>r.json())
-.then(data=>{
-files=data
-render()
-})
+  .then(r => r.json())
+  .then(data => {
+    files = data
+    render()
+  })
 
-document.getElementById("back").onclick=()=>{
-if(folder==="")return
-folder=folder.split("/").slice(0,-2).join("/")+"/"
-if(folder==="/")folder=""
-render()
+search.oninput = render
+sort.onchange = render
+
+function render() {
+  list.innerHTML = ""
+  pathEl.textContent = "files/" + folder
+
+  let filtered = files.filter(f => f.path.startsWith(folder))
+  const folders = new Set()
+
+  filtered.forEach(file => {
+    const rest = file.path.slice(folder.length)
+    const parts = rest.split("/")
+    if (parts.length > 1) folders.add(parts[0])
+  })
+
+  folders.forEach(f => createFolder(f))
+
+  filtered
+    .filter(f => !f.path.slice(folder.length).includes("/"))
+    .filter(f => f.name.toLowerCase().includes(search.value.toLowerCase()))
+    .sort(sortFiles)
+    .forEach(createFileWithPreview)
 }
 
-search.oninput=render
-sort.onchange=render
-
-function render(){
-
-list.innerHTML=""
-path.textContent="files/"+folder
-
-let filtered=files.filter(f=>f.path.startsWith(folder))
-
-const folders=new Set()
-
-filtered.forEach(file=>{
-
-let rest=file.path.slice(folder.length)
-let parts=rest.split("/")
-
-if(parts.length>1){
-folders.add(parts[0])
+function sortFiles(a, b) {
+  if (sort.value === "size") return b.size - a.size
+  return a.name.localeCompare(b.name)
 }
 
-})
-
-folders.forEach(f=>createFolder(f))
-
-filtered
-.filter(f=>!f.path.slice(folder.length).includes("/"))
-.filter(f=>f.name.toLowerCase().includes(search.value.toLowerCase()))
-.sort(sortFiles)
-.forEach(createFile)
-
+function createFolder(name) {
+  const div = document.createElement("div")
+  div.className = "item"
+  div.innerHTML = `<div class="name">📁 ${name}</div>`
+  div.onclick = () => {
+    folder += name + "/"
+    render()
+  }
+  list.appendChild(div)
 }
 
-function sortFiles(a,b){
+function createFileWithPreview(file) {
+  const div = document.createElement("div")
+  div.className = "item"
 
-if(sort.value==="size"){
-return b.size-a.size
+  div.innerHTML = `
+    <div class="name">📄 ${file.name} (${format(file.size)})
+      <a class="download" href="files/${file.path}" download>Download</a>
+    </div>
+    <div class="preview"></div>
+  `
+
+  const previewContainer = div.querySelector(".preview")
+  addPreview(previewContainer, file)
+  list.appendChild(div)
 }
 
-return a.name.localeCompare(b.name)
+function addPreview(container, file) {
+  const ext = file.name.split(".").pop().toLowerCase()
+  const url = "files/" + file.path
 
-}
-
-function createFolder(name){
-
-const div=document.createElement("div")
-div.className="item"
-
-div.innerHTML=`
-<div class="name">📁 ${name}</div>
-<div>open</div>
-`
-
-div.onclick=()=>{
-folder+=name+"/"
-render()
-}
-
-list.appendChild(div)
-
-}
-
-function createFile(file){
-
-const div=document.createElement("div")
-div.className="item"
-
-div.innerHTML=`
-<div class="name">📄 ${file.name}</div>
-<div>
-${format(file.size)}
-<a class="download" href="files/${file.path}" download>download</a>
-</div>
-`
-
-div.onclick=()=>showPreview(file)
-
-list.appendChild(div)
-
-}
-
-function showPreview(file){
-
-preview.innerHTML=""
-
-let ext=file.name.split(".").pop().toLowerCase()
-
-let url="files/"+file.path
-
-if(["png","jpg","jpeg","gif","webp"].includes(ext)){
-
-preview.innerHTML=`<h3>${file.name}</h3><img src="${url}">`
-
-}
-
-else if(["mp4","webm","mov"].includes(ext)){
-
-preview.innerHTML=`<h3>${file.name}</h3><video controls src="${url}"></video>`
-
-}
-
-else if(["mp3","wav","ogg","flac"].includes(ext)){
-
-preview.innerHTML=`<h3>${file.name}</h3><audio controls src="${url}"></audio>`
-
-}
-
-else{
-
-preview.innerHTML=`<h3>${file.name}</h3>
-<a class="download" href="${url}" download>Download file</a>`
-
-}
-
+  if (["png","jpg","jpeg","gif","webp"].includes(ext)) {
+    const img = document.createElement("img")
+    img.src = url
+    container.appendChild(img)
+  } else if (["mp4","webm","mov"].includes(ext)) {
+    const video = document.createElement("video")
+    video.src = url
+    video.controls = true
+    container.appendChild(video)
+  } else if (["mp3","wav","ogg","flac"].includes(ext)) {
+    const audio = document.createElement("audio")
+    audio.src = url
+    audio.controls = true
+    container.appendChild(audio)
+  } else {
+    const link = document.createElement("a")
+    link.href = url
+    link.download = file.name
+    link.textContent = "Download file"
+    link.className = "download"
+    container.appendChild(link)
+  }
 }
 
 function format(bytes){
-
-if(bytes<1024)return bytes+" B"
-if(bytes<1024*1024)return (bytes/1024).toFixed(1)+" KB"
-return (bytes/1024/1024).toFixed(1)+" MB"
-
+  if(bytes<1024) return bytes+" B"
+  if(bytes<1024*1024) return (bytes/1024).toFixed(1)+" KB"
+  return (bytes/1024/1024).toFixed(1)+" MB"
 }
