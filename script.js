@@ -103,3 +103,34 @@ function format(bytes){
   if(bytes<1024*1024) return (bytes/1024).toFixed(1)+" KB"
   return (bytes/1024/1024).toFixed(1)+" MB"
 }
+
+const discordContainer = document.getElementById("discord-embed-container");
+
+// Example messages using logo.png as avatar
+const discordMessages = [
+  {
+    author: "THE DRIXZOID FILES",
+    avatar: "logo.png", // Your logo
+    content: "Welcome to THE DRIXZOID FILES!"
+  },
+  {
+    author: "Drixzoid Bot",
+    avatar: "logo.png",
+    content: "Enjoy!"
+  }
+];
+
+discordMessages.forEach(msg => {
+  const card = document.createElement("div");
+  card.className = "discord-embed-card";
+
+  card.innerHTML = `
+    <img class="discord-avatar" src="${msg.avatar}" alt="${msg.author}">
+    <div class="discord-content">
+      <div class="discord-author">${msg.author}</div>
+      <div class="discord-message">${msg.content}</div>
+    </div>
+  `;
+
+  discordContainer.appendChild(card);
+});
