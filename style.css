@@ -4,7 +4,6 @@ body {
     font-family: 'Segoe UI', 'Arial', sans-serif;
     margin: 0;
     padding: 40px;
-    transition: background 0.5s;
 }
 
 .container {
@@ -17,9 +16,12 @@ h1 {
     font-weight: 900;
     text-align: center;
     margin-bottom: 30px;
+
     background: linear-gradient(90deg,#4da3ff,#9b59b6);
+    color: transparent;
+    background-clip: text;
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -moz-background-clip: text;
     animation: glow 3s infinite alternate;
 }
 
@@ -111,6 +113,7 @@ input:focus, select:focus {
 .preview img,
 .preview video,
 .preview audio {
+    display: block;
     max-width: 200px;
     max-height: 200px;
     border-radius: 12px;
