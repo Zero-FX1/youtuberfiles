@@ -83,7 +83,7 @@ function addPreview(container, file) {
     video.src = url
     video.controls = true
     container.appendChild(video)
-  } else if (["mp3","wav","ogg","flac"].includes(ext)) {
+  } else if (["mp3","wav","ogg","flac","m4a"].includes(ext)) {
     const audio = document.createElement("audio")
     audio.src = url
     audio.controls = true
